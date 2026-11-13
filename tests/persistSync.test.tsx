@@ -757,4 +757,35 @@ describe('persist middleware with sync configuration', () => {
     expect(useBoundStore.persist.hasHydrated()).toBe(true)
     expect(setItem).toBeCalledTimes(0)
   })
+
+  it('does not pollute Object.prototype when rehydrating state with __proto__', () => {
+    const storage = {
+      getItem: () =>
+        JSON.stringify({
+          state: {
+            __proto__: { polluted: true },
+            count: 42,
+          },
+          version: 0,
+        }),
+      setItem: () => {},
+      removeItem: () => {},
+    }
+
+    const useBoundStore = create(
+      persist(
+        () => ({
+          count: 0,
+        }),
+        {
+          name: 'test-prototype-pollution',
+          storage: createJSONStorage(() => storage),
+        },
+      ),
+    )
+
+    expect(useBoundStore.getState().count).toBe(42)
+    expect((Object.prototype as any).polluted).toBeUndefined()
+    expect(({} as any).polluted).toBeUndefined()
+  })
 })
