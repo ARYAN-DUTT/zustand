@@ -999,4 +999,36 @@ Here's the `html` code
 
 ## Troubleshooting
 
-TBD
+### Store is empty on first render when using `skipHydration: true`
+
+When `skipHydration: true` is configured, automatic rehydration on store creation is disabled to prevent hydration mismatches during SSR. The store must be rehydrated manually on the client using `rehydrate()`:
+
+```ts
+await useBoundStore.persist.rehydrate()
+```
+
+### Checking rehydration status
+
+To check if the store has finished hydrating from asynchronous storage, use `hasHydrated()` or register a listener via `onFinishHydration`:
+
+```ts
+const hasHydrated = useBoundStore.persist.hasHydrated()
+
+useBoundStore.persist.onFinishHydration((state) => {
+  console.log('Hydration completed', state)
+})
+```
+
+### Initial state is not written to storage at store creation in v5
+
+Starting in Zustand v5, the persist middleware no longer writes the initial state to storage upon store creation. State is only written to storage when state mutations explicitly occur. If initial storage state is required, update the store explicitly after initialization.
+
+### Storage unavailable during module evaluation (SSR)
+
+If your storage API (such as `window.localStorage`) is not available at module import time, use `createJSONStorage` with a getter function:
+
+```ts
+storage: createJSONStorage(() => localStorage)
+```
+
+The getter function is evaluated lazily on first access rather than immediately at import time.
