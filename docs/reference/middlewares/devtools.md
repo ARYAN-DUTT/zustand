@@ -45,6 +45,14 @@ devtools<T>(stateCreatorFn: StateCreator<T, [], []>, devtoolsOptions?: DevtoolsO
 ;['zustand/devtools', never]
 ```
 
+### NamedSet
+
+```ts
+export type NamedSet<T> = WithDevtools<StoreApi<T>>['setState']
+```
+
+`NamedSet` is the type of the `set` function augmented by the devtools middleware. It enables passing a custom action name as the third parameter (for example, `set(nextState, undefined, 'actionName')`) so actions are clearly identified and traced in Redux DevTools.
+
 ## Reference
 
 ### `devtools(stateCreatorFn, devtoolsOptions)`
