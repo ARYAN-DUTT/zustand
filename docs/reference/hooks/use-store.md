@@ -920,4 +920,32 @@ export default function App() {
 
 ## Troubleshooting
 
-TBD
+### Infinite re-render loop or "Maximum update depth exceeded"
+
+If your selector generates a new object or array reference on each render, React's `useSyncExternalStore` detects a new value and triggers an immediate re-render, resulting in a render loop:
+
+```ts
+// ❌ Returns a new array reference on every render
+const items = useStore(store, (state) => [state.itemA, state.itemB])
+
+// ✅ Wrap the selector with useShallow to compare shallow equality
+import { useShallow } from 'zustand/react/shallow'
+
+const items = useStore(
+  store,
+  useShallow((state) => [state.itemA, state.itemB]),
+)
+```
+
+### Fallback values creating new function references
+
+Returning an inline fallback function in your selector (such as `state.action ?? (() => {})`) produces a new reference every render. To ensure stable selector output, hoist fallback functions to module-level constants:
+
+```ts
+// ❌ Inline fallback creates a new function reference on every render
+const action = useStore(store, (state) => state.action ?? (() => {}))
+
+// ✅ Hoist the fallback function to a stable reference
+const noop = () => {}
+const action = useStore(store, (state) => state.action ?? noop)
+```
